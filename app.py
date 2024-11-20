@@ -3,6 +3,7 @@ import imaplib
 import email
 import re
 import pandas as pd
+import streamlit as st
 from time import time, sleep
 
 # Email regex validation
@@ -69,20 +70,20 @@ def validate_email(test_email, gmail_user, gmail_app_password):
     if not is_valid_syntax(test_email):
         return False  # Invalid syntax
 
-    print(f"Sending test email to {test_email}...")
+    st.write(f"Sending test email to {test_email}...")
     if send_test_email(test_email, gmail_user, gmail_app_password):
-        print(f"Initial success for {test_email}. Waiting for final validation.")
+        st.write(f"Initial success for {test_email}. Waiting for final validation.")
         sleep(10)  # Wait for bounce-back to arrive
         if not check_bounce_back(gmail_user, gmail_app_password, test_email):
-            print(f"{test_email}: Invalid (Bounce detected)")
+            st.write(f"{test_email}: Invalid (Bounce detected)")
             return False
-        print(f"{test_email}: Valid and received")
+        st.write(f"{test_email}: Valid and received")
         return True
     else:
         return False
 
 # Main function to handle Excel input/output and timing
-def process_emails(input_excel, output_excel, gmail_user, gmail_app_password, start_row, end_row, email_column='Email'):
+def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_row, email_column='Email'):
     # Read input Excel file
     df = pd.read_excel(input_excel)
 
@@ -106,32 +107,52 @@ def process_emails(input_excel, output_excel, gmail_user, gmail_app_password, st
     # Calculate the time taken
     end_time = time()
     processing_time = end_time - start_time
-    print(f"Total processing time: {processing_time:.2f} seconds")
+    st.write(f"Total processing time: {processing_time:.2f} seconds")
 
-    # Create DataFrame for results and write to Excel
+    # Create DataFrame for results
     valid_df = pd.DataFrame(valid_emails)
     invalid_df = pd.DataFrame(invalid_emails)
 
-    # Construct filenames with start and end row information
+    # Display the results
+    st.subheader("Valid Emails")
+    st.write(valid_df)
+    
+    st.subheader("Invalid Emails")
+    st.write(invalid_df)
+
+    # Provide download options for Excel files
     valid_output_filename = f"valid_emails_{start_row}_{end_row}.xlsx"
     invalid_output_filename = f"invalid_emails_{start_row}_{end_row}.xlsx"
 
-    # Save the results to Excel files with start and end rows in filenames
-    with pd.ExcelWriter(valid_output_filename, engine='openpyxl') as writer:
-        valid_df.to_excel(writer, sheet_name='Valid Emails', index=False)
+    valid_df.to_excel(valid_output_filename, index=False)
+    invalid_df.to_excel(invalid_output_filename, index=False)
 
-    with pd.ExcelWriter(invalid_output_filename, engine='openpyxl') as writer:
-        invalid_df.to_excel(writer, sheet_name='Invalid Emails', index=False)
+    st.download_button(
+        label="Download Valid Emails",
+        data=open(valid_output_filename, "rb").read(),
+        file_name=valid_output_filename
+    )
 
-# Main entry point
-if __name__ == "__main__":
-    gmail_user = "senthilkumargwgk@gmail.com"
-    gmail_app_password = "rlkt fudf juoq cbsh"
-    input_excel = "X.xlsx"  # Path to the input Excel file with emails in a column
+    st.download_button(
+        label="Download Invalid Emails",
+        data=open(invalid_output_filename, "rb").read(),
+        file_name=invalid_output_filename
+    )
 
-    # Define the start and end rows (for example: 1 to 10)
-    start_row = 1  # Change this to your desired start row
-    end_row = 10  # Change this to your desired end row
-    email_column = 'Email'  # Change this to your actual email column name if different
-    
-    process_emails(input_excel, "", gmail_user, gmail_app_password, start_row, end_row, email_column)
+# Streamlit UI
+st.title("Email Validation Tool")
+st.write("This tool validates email addresses and checks for bounce-backs.")
+
+gmail_user = st.text_input("Gmail Address", value="senthilkumargwgk@gmail.com")
+gmail_app_password = st.text_input("Gmail App Password", type="password")
+input_excel = st.file_uploader("Upload Excel File", type=["xlsx"])
+
+if input_excel:
+    df = pd.read_excel(input_excel)
+    st.write("Data Preview", df.head())
+
+    start_row = st.number_input("Start Row", min_value=1, value=1)
+    end_row = st.number_input("End Row", min_value=start_row, value=start_row + 9)
+
+    if st.button("Start Validation"):
+        process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_row)

@@ -59,3 +59,20 @@ The tool processes a given Excel file containing email addresses and generates *
 ### Running the Script
 ```python
 python validate_emails.py
+```
+
+### Output Files
+**email_list valid emails 1-5.xlsx**
+| ID  | Email              | Validation Status | Validation Time (s) |
+|------|--------------------|-------------------|----------------------|
+| 1    | valid@example.com | Valid             | 2.56                |
+
+---
+
+**email_list invalid emails 1-5.xlsx**
+
+| ID  | Email              | Validation Status | Validation Time (s) |
+|------|--------------------|-------------------|----------------------|
+| 2    | invalid@fake.com  | Invalid           | 3.21                |
+
+---

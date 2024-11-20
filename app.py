@@ -1,102 +1,137 @@
 import smtplib
+import imaplib
+import email
 import re
-import dns.resolver
-from time import time, sleep
 import pandas as pd
-import streamlit as st
+from time import time, sleep
 
-# Validate email syntax using regex
+# Email regex validation
 def is_valid_syntax(email):
-    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zAHZ0-9-]+\.[a-zA-Z0-9-.]+$'
     return re.match(email_regex, email) is not None
 
-# Verify the domain has MX records
-def has_valid_mx_record(domain):
+# Check for bounce-back emails
+def check_bounce_back(gmail_user, gmail_app_password, test_email, wait_duration=120):
     try:
-        dns.resolver.resolve(domain, 'MX')
-        return True
-    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+        # Connect to the IMAP server
+        mail = imaplib.IMAP4_SSL("imap.gmail.com")
+        mail.login(gmail_user, gmail_app_password)
+        mail.select("inbox")
+
+        start_time = time()
+        while time() - start_time < wait_duration:
+            # Search for unseen messages (waiting for bounce-back)
+            status, messages = mail.search(None, 'UNSEEN')
+            if status == "OK":
+                for num in messages[0].split():
+                    status, msg_data = mail.fetch(num, "(RFC822)")
+                    if status == "OK":
+                        msg = email.message_from_bytes(msg_data[0][1])
+                        subject = msg["subject"]
+                        body = msg.get_payload(decode=True).decode()
+
+                        # Bounce-check based on subject and content
+                        if "bounce" in subject.lower() or "undelivered" in subject.lower():
+                            if test_email in body:
+                                print(f"Bounce-back detected for {test_email}")
+                                return False  # Bounce detected
+            sleep(5)  # Wait between checks
+
+        return True  # No bounce detected after waiting
+    except Exception as e:
+        print(f"Error checking bounce-back: {e}")
         return False
 
-# Perform SMTP validation using Gmail's SMTP server
-def is_email_valid_smtp(email, gmail_user, gmail_app_password):
+# Send a test email and validate
+def send_test_email(test_email, gmail_user, gmail_app_password):
     try:
-        if not is_valid_syntax(email):
-            return False
-        
-        domain = email.split('@')[1]
-        if not has_valid_mx_record(domain):
-            return False
-
+        # Send a test email
         server = smtplib.SMTP("smtp.gmail.com", 587, timeout=30)
         server.starttls()
         server.login(gmail_user, gmail_app_password)
-        server.helo()
-        server.mail(gmail_user)
-        code, message = server.rcpt(email)
 
+        # Test email content
+        from_email = gmail_user
+        to_email = test_email
+        subject = "Test Email"
+        body = "This is a test email to validate your address."
+
+        message = f"Subject: {subject}\n\n{body}"
+        server.sendmail(from_email, to_email, message)
         server.quit()
-        return code == 250
+        return True
     except Exception as e:
+        print(f"Error sending test email to {test_email}: {e}")
         return False
 
-# Streamlit interface
-def email_verification_app():
-    st.title('Email Verification App')
+# Validate email with SMTP and bounce-back handling
+def validate_email(test_email, gmail_user, gmail_app_password):
+    if not is_valid_syntax(test_email):
+        return False  # Invalid syntax
 
-    # User inputs
-    gmail_user = st.text_input("Enter your Gmail address (This email will be used to verify others):", "")
-    gmail_app_password = st.text_input("Enter your Gmail app password (Note: No passwords are saved):", type="password")
+    print(f"Sending test email to {test_email}...")
+    if send_test_email(test_email, gmail_user, gmail_app_password):
+        print(f"Initial success for {test_email}. Waiting for final validation.")
+        sleep(10)  # Wait for bounce-back to arrive
+        if not check_bounce_back(gmail_user, gmail_app_password, test_email):
+            print(f"{test_email}: Invalid (Bounce detected)")
+            return False
+        print(f"{test_email}: Valid and received")
+        return True
+    else:
+        return False
 
-    
-    uploaded_file = st.file_uploader("Upload an Excel file", type=["xlsx"])
-    
-    if uploaded_file is not None:
-        # Read the uploaded file
-        df = pd.read_excel(uploaded_file)
-        
-        email_column = st.text_input("Enter the email column name", "Email")
-        
-        start_row = st.number_input("Start Row", min_value=0, value=0)
-        end_row = st.number_input("End Row", min_value=start_row, value=start_row + 1000)
+# Main function to handle Excel input/output and timing
+def process_emails(input_excel, output_excel, gmail_user, gmail_app_password, start_row, end_row, email_column='Email'):
+    # Read input Excel file
+    df = pd.read_excel(input_excel)
 
-        if st.button('Start Validation'):
-            validate_emails(df, email_column, gmail_user, gmail_app_password, start_row, end_row)
+    # Slice the DataFrame based on the start and end row
+    df_subset = df.iloc[start_row-1:end_row]
 
-# Main function to validate emails
-def validate_emails(df, email_column, gmail_user, gmail_app_password, start_row=None, end_row=None):
-    start_time = time()
+    # Create lists to store valid and invalid emails
+    valid_emails = []
+    invalid_emails = []
 
-    if start_row is not None and end_row is not None:
-        df = df.iloc[start_row:end_row]
+    start_time = time()  # Start timing the processing
 
-    validated_data = []
-    invalid_data = []
-
-    for index, row in df.iterrows():
-        email = row[email_column]
-        email_start_time = time()
-        is_valid = is_email_valid_smtp(email, gmail_user, gmail_app_password)
-        time_taken = time() - email_start_time
-
+    for idx, row in df_subset.iterrows():
+        email_address = row[email_column]  # Use the specified email column
+        is_valid = validate_email(email_address, gmail_user, gmail_app_password)
         if is_valid:
-            validated_data.append({**row.to_dict(), "Validation Status": "Valid", "Validation Time (s)": time_taken})
+            valid_emails.append(row)
         else:
-            invalid_data.append({**row.to_dict(), "Validation Status": "Invalid", "Validation Time (s)": time_taken})
+            invalid_emails.append(row)
 
-        sleep(30)  # Pause to avoid server throttling
+    # Calculate the time taken
+    end_time = time()
+    processing_time = end_time - start_time
+    print(f"Total processing time: {processing_time:.2f} seconds")
 
-    # Show results in Streamlit
-    if validated_data:
-        st.write("Valid Emails:")
-        st.write(pd.DataFrame(validated_data))
+    # Create DataFrame for results and write to Excel
+    valid_df = pd.DataFrame(valid_emails)
+    invalid_df = pd.DataFrame(invalid_emails)
 
-    if invalid_data:
-        st.write("Invalid Emails:")
-        st.write(pd.DataFrame(invalid_data))
+    # Construct filenames with start and end row information
+    valid_output_filename = f"valid_emails_{start_row}_{end_row}.xlsx"
+    invalid_output_filename = f"invalid_emails_{start_row}_{end_row}.xlsx"
 
-    total_time = (time() - start_time) / 3600
-    st.write(f"Total time taken: {total_time:.2f} hours")
+    # Save the results to Excel files with start and end rows in filenames
+    with pd.ExcelWriter(valid_output_filename, engine='openpyxl') as writer:
+        valid_df.to_excel(writer, sheet_name='Valid Emails', index=False)
 
+    with pd.ExcelWriter(invalid_output_filename, engine='openpyxl') as writer:
+        invalid_df.to_excel(writer, sheet_name='Invalid Emails', index=False)
+
+# Main entry point
 if __name__ == "__main__":
-    email_verification_app()
+    gmail_user = "senthilkumargwgk@gmail.com"
+    gmail_app_password = "rlkt fudf juoq cbsh"
+    input_excel = "X.xlsx"  # Path to the input Excel file with emails in a column
+
+    # Define the start and end rows (for example: 1 to 10)
+    start_row = 1  # Change this to your desired start row
+    end_row = 10  # Change this to your desired end row
+    email_column = 'Email'  # Change this to your actual email column name if different
+    
+    process_emails(input_excel, "", gmail_user, gmail_app_password, start_row, end_row, email_column)

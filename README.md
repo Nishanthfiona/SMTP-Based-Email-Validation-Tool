@@ -1,52 +1,61 @@
-"""
-README: SMTP-Based Email Validation Tool
+# Email Validation Tool using SMTP
 
-This script performs a comprehensive validation of email addresses by leveraging Python's `smtplib`, `re`, 
-and `dns.resolver` libraries, along with Gmail's SMTP server for authentication and recipient verification.
+## Overview
+This script validates email addresses by performing the following steps:
+1. **Syntax Validation**: Ensures the email address is formatted correctly using a regular expression.
+2. **MX Record Validation**: Checks if the email's domain has a valid mail server (MX record).
+3. **SMTP Validation**: Uses Gmail's SMTP server to check whether the email address exists and is deliverable.
 
-**Functionality Overview:**
-1. **Syntax Validation:** Checks if the email follows proper formatting using regex.
-2. **MX Record Verification:** Confirms that the domain of the email has valid mail exchange (MX) records.
-3. **SMTP Validation:** Authenticates with Gmail's SMTP server and performs a recipient address check.
+The tool processes a given Excel file containing email addresses and generates **two output files**:
+- **Valid Emails File**: Contains rows with deliverable email addresses and validation details.
+- **Invalid Emails File**: Contains rows with undeliverable email addresses and validation details.
 
-**Input:** 
-- An Excel file containing email addresses in a specific column.
+---
 
-**Output:**
-- Two Excel files:
-  1. **Valid Emails File:** Contains all rows with emails validated as "deliverable" along with validation time.
-  2. **Invalid Emails File:** Contains all rows with undeliverable emails along with validation time.
+## Features
+- **Input File**: An Excel file with a column containing email addresses.
+- **Output Files**:
+  1. A file listing valid emails with the validation status and time taken for each.
+  2. A file listing invalid emails with the same additional details.
+- **Customizable Range**: Allows validation of specific rows from the Excel file.
+- **Detailed Logs**: Prints status and time taken for each email during validation.
 
-**How It Works:**
-1. Reads the input Excel file to fetch the list of emails.
-2. Processes each email to perform the three validation steps.
-3. Separates the emails into valid and invalid categories.
-4. Writes these categories into two separate Excel files for easy access.
+---
 
-**Prerequisites:**
-1. Python 3.7 or above.
-2. Required libraries: pandas, openpyxl, dnspython, smtplib.
-3. A Gmail account with an App Password set up for SMTP access.
+## Prerequisites
+1. **Python Libraries**:
+   - `pandas`: For Excel file handling.
+   - `openpyxl`: For writing to Excel files.
+   - `dns.resolver`: For checking domain MX records.
+   - `smtplib`: For SMTP-based email validation.
+2. **Gmail Account**:
+   - A Gmail account with an [App Password](https://support.google.com/accounts/answer/185833) enabled.
 
-**Steps to Run the Script:**
-1. Replace the following variables with your information:
-    - `gmail_user`: Your Gmail address.
-    - `gmail_app_password`: Your Gmail App Password.
-    - `input_file`: Path to the Excel file with emails.
-    - `email_column`: Name of the column containing email addresses.
+---
 
-2. Adjust `start_row` and `end_row` if processing a specific range.
+## How to Use
+1. Update the following variables in the script:
+   - `gmail_user`: Your Gmail email address.
+   - `gmail_app_password`: Your Gmail App Password.
+   - `input_file`: The path to the input Excel file containing emails.
+   - `email_column`: Name of the column in the Excel file that contains email addresses.
 
-3. Run the script, and it will generate two output files in the same directory as the input file:
-    - **Valid Emails File:** `<input_file_name> valid emails <start_row>-<end_row>.xlsx`
-    - **Invalid Emails File:** `<input_file_name> invalid emails <start_row>-<end_row>.xlsx`
+2. Adjust `start_row` and `end_row` to define the range of rows to process (if needed).
 
-4. Each output file includes:
-    - Original data from the input file.
-    - A "Validation Status" column indicating "Valid" or "Invalid".
-    - A "Validation Time (s)" column showing the time taken to validate each email.
+3. Run the script, and the output files will be generated in the same directory as the input file:
+   - `<input_file_name> valid emails <start_row>-<end_row>.xlsx`
+   - `<input_file_name> invalid emails <start_row>-<end_row>.xlsx`
 
-**Example:**
-If your input file is `email_list.xlsx` with 100 rows and you process rows 1 to 50:
-- Valid emails are saved in `email_list valid emails 1-50.xlsx`.
-- Invalid emails are saved in `email_list invalid emails 1-50.xlsx`.
+---
+
+## Example
+### Input File
+**email_list.xlsx**
+| ID  | Email              |
+|------|--------------------|
+| 1    | valid@example.com |
+| 2    | invalid@fake.com  |
+
+### Running the Script
+```python
+python validate_emails.py

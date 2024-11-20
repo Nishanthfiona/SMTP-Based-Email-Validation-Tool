@@ -45,8 +45,9 @@ def email_verification_app():
     st.title('Email Verification App')
 
     # User inputs
-    gmail_user = st.text_input("Enter your Gmail username", "email you enter will be used to verify other emails")
-    gmail_app_password = st.text_input("Enter your Gmail app password(Note: No passwords will be saved )", type="password")
+    gmail_user = st.text_input("Enter your Gmail address (This email will be used to verify others):", "")
+    gmail_app_password = st.text_input("Enter your Gmail app password (Note: No passwords are saved):", type="password")
+
     
     uploaded_file = st.file_uploader("Upload an Excel file", type=["xlsx"])
     

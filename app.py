@@ -1,136 +1,101 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": None,
-   "id": "801f27b1-f51e-4918-b858-27fbefecc0d6",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "import smtplib\n",
-    "import re\n",
-    "import dns.resolver\n",
-    "from time import time, sleep\n",
-    "import socket\n",
-    "import pandas as pd\n",
-    "import streamlit as st\n",
-    "\n",
-    "# Validate email syntax using regex\n",
-    "def is_valid_syntax(email):\n",
-    "    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$'\n",
-    "    return re.match(email_regex, email) is not None\n",
-    "\n",
-    "# Verify the domain has MX records\n",
-    "def has_valid_mx_record(domain):\n",
-    "    try:\n",
-    "        dns.resolver.resolve(domain, 'MX')\n",
-    "        return True\n",
-    "    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):\n",
-    "        return False\n",
-    "\n",
-    "# Perform SMTP validation using Gmail's SMTP server\n",
-    "def is_email_valid_smtp(email, gmail_user, gmail_app_password):\n",
-    "    try:\n",
-    "        if not is_valid_syntax(email):\n",
-    "            return False\n",
-    "        \n",
-    "        domain = email.split('@')[1]\n",
-    "        if not has_valid_mx_record(domain):\n",
-    "            return False\n",
-    "\n",
-    "        server = smtplib.SMTP(\"smtp.gmail.com\", 587, timeout=30)\n",
-    "        server.starttls()\n",
-    "        server.login(gmail_user, gmail_app_password)\n",
-    "        server.helo()\n",
-    "        server.mail(gmail_user)\n",
-    "        code, message = server.rcpt(email)\n",
-    "\n",
-    "        server.quit()\n",
-    "        return code == 250\n",
-    "    except Exception as e:\n",
-    "        return False\n",
-    "\n",
-    "# Streamlit interface\n",
-    "def email_verification_app():\n",
-    "    st.title('Email Verification App')\n",
-    "\n",
-    "    # User inputs\n",
-    "    gmail_user = st.text_input(\"Enter your Gmail username\", \"senthilkumargwgk@gmail.com\")\n",
-    "    gmail_app_password = st.text_input(\"rlkt fudf juoq cbsh\", type=\"password\")\n",
-    "    \n",
-    "    uploaded_file = st.file_uploader(\"Upload an Excel file\", type=[\"xlsx\"])\n",
-    "    \n",
-    "    if uploaded_file is not None:\n",
-    "        # Read the uploaded file\n",
-    "        df = pd.read_excel(uploaded_file)\n",
-    "        \n",
-    "        email_column = st.text_input(\"Enter the email column name\", \"Email\")\n",
-    "        \n",
-    "        start_row = st.number_input(\"Start Row\", min_value=0, value=0)\n",
-    "        end_row = st.number_input(\"End Row\", min_value=start_row, value=start_row + 1000)\n",
-    "\n",
-    "        if st.button('Start Validation'):\n",
-    "            validate_emails(df, email_column, gmail_user, gmail_app_password, start_row, end_row)\n",
-    "\n",
-    "# Main function to validate emails\n",
-    "def validate_emails(df, email_column, gmail_user, gmail_app_password, start_row=None, end_row=None):\n",
-    "    start_time = time()\n",
-    "\n",
-    "    if start_row is not None and end_row is not None:\n",
-    "        df = df.iloc[start_row:end_row]\n",
-    "\n",
-    "    validated_data = []\n",
-    "    invalid_data = []\n",
-    "\n",
-    "    for index, row in df.iterrows():\n",
-    "        email = row[email_column]\n",
-    "        email_start_time = time()\n",
-    "        is_valid = is_email_valid_smtp(email, gmail_user, gmail_app_password)\n",
-    "        time_taken = time() - email_start_time\n",
-    "\n",
-    "        if is_valid:\n",
-    "            validated_data.append({**row.to_dict(), \"Validation Status\": \"Valid\", \"Validation Time (s)\": time_taken})\n",
-    "        else:\n",
-    "            invalid_data.append({**row.to_dict(), \"Validation Status\": \"Invalid\", \"Validation Time (s)\": time_taken})\n",
-    "\n",
-    "        sleep(30)  # Pause to avoid server throttling\n",
-    "\n",
-    "    # Show results in Streamlit\n",
-    "    if validated_data:\n",
-    "        st.write(\"Valid Emails:\")\n",
-    "        st.write(pd.DataFrame(validated_data))\n",
-    "\n",
-    "    if invalid_data:\n",
-    "        st.write(\"Invalid Emails:\")\n",
-    "        st.write(pd.DataFrame(invalid_data))\n",
-    "\n",
-    "    total_time = (time() - start_time) / 3600\n",
-    "    st.write(f\"Total time taken: {total_time:.2f} hours\")\n",
-    "\n",
-    "if __name__ == \"__main__\":\n",
-    "    email_verification_app()\n"
-   ]
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3 (ipykernel)",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.11.7"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
+import smtplib
+import re
+import dns.resolver
+from time import time, sleep
+import pandas as pd
+import streamlit as st
+
+# Validate email syntax using regex
+def is_valid_syntax(email):
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    return re.match(email_regex, email) is not None
+
+# Verify the domain has MX records
+def has_valid_mx_record(domain):
+    try:
+        dns.resolver.resolve(domain, 'MX')
+        return True
+    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+        return False
+
+# Perform SMTP validation using Gmail's SMTP server
+def is_email_valid_smtp(email, gmail_user, gmail_app_password):
+    try:
+        if not is_valid_syntax(email):
+            return False
+        
+        domain = email.split('@')[1]
+        if not has_valid_mx_record(domain):
+            return False
+
+        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=30)
+        server.starttls()
+        server.login(gmail_user, gmail_app_password)
+        server.helo()
+        server.mail(gmail_user)
+        code, message = server.rcpt(email)
+
+        server.quit()
+        return code == 250
+    except Exception as e:
+        return False
+
+# Streamlit interface
+def email_verification_app():
+    st.title('Email Verification App')
+
+    # User inputs
+    gmail_user = st.text_input("Enter your Gmail username", "senthilkumargwgk@gmail.com")
+    gmail_app_password = st.text_input("Enter your Gmail app password", type="password")
+    
+    uploaded_file = st.file_uploader("Upload an Excel file", type=["xlsx"])
+    
+    if uploaded_file is not None:
+        # Read the uploaded file
+        df = pd.read_excel(uploaded_file)
+        
+        email_column = st.text_input("Enter the email column name", "Email")
+        
+        start_row = st.number_input("Start Row", min_value=0, value=0)
+        end_row = st.number_input("End Row", min_value=start_row, value=start_row + 1000)
+
+        if st.button('Start Validation'):
+            validate_emails(df, email_column, gmail_user, gmail_app_password, start_row, end_row)
+
+# Main function to validate emails
+def validate_emails(df, email_column, gmail_user, gmail_app_password, start_row=None, end_row=None):
+    start_time = time()
+
+    if start_row is not None and end_row is not None:
+        df = df.iloc[start_row:end_row]
+
+    validated_data = []
+    invalid_data = []
+
+    for index, row in df.iterrows():
+        email = row[email_column]
+        email_start_time = time()
+        is_valid = is_email_valid_smtp(email, gmail_user, gmail_app_password)
+        time_taken = time() - email_start_time
+
+        if is_valid:
+            validated_data.append({**row.to_dict(), "Validation Status": "Valid", "Validation Time (s)": time_taken})
+        else:
+            invalid_data.append({**row.to_dict(), "Validation Status": "Invalid", "Validation Time (s)": time_taken})
+
+        sleep(30)  # Pause to avoid server throttling
+
+    # Show results in Streamlit
+    if validated_data:
+        st.write("Valid Emails:")
+        st.write(pd.DataFrame(validated_data))
+
+    if invalid_data:
+        st.write("Invalid Emails:")
+        st.write(pd.DataFrame(invalid_data))
+
+    total_time = (time() - start_time) / 3600
+    st.write(f"Total time taken: {total_time:.2f} hours")
+
+if __name__ == "__main__":
+    email_verification_app()

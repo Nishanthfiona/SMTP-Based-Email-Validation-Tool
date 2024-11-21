@@ -1,14 +1,15 @@
+import streamlit as st
+import pandas as pd
 import smtplib
 import imaplib
 import email
 import re
-import pandas as pd
-import streamlit as st
+from io import BytesIO
 from time import time, sleep
 
 # Email regex validation
 def is_valid_syntax(email):
-    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zAHZ0-9-]+\.[a-zA-Z0-9-.]+$'
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
     return re.match(email_regex, email) is not None
 
 # Check for bounce-back emails
@@ -39,7 +40,6 @@ def check_bounce_back(gmail_user, gmail_app_password, test_email, wait_duration=
 
         return True  # No bounce detected after waiting
     except Exception as e:
-        print(f"Error checking bounce-back: {e}")
         return False
 
 # Send a test email and validate
@@ -60,8 +60,7 @@ def send_test_email(test_email, gmail_user, gmail_app_password):
         server.sendmail(from_email, to_email, message)
         server.quit()
         return True
-    except Exception as e:
-        print(f"Error sending test email to {test_email}: {e}")
+    except Exception:
         return False
 
 # Validate email with SMTP and bounce-back handling
@@ -77,79 +76,74 @@ def validate_email(test_email, gmail_user, gmail_app_password):
     else:
         return False
 
-# Main function to handle Excel input/output and timing
-def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_row, email_column='Email'):
-    # Read input Excel file
-    df = pd.read_excel(input_excel)
-
-    # Slice the DataFrame based on the start and end row
+# Process emails
+def process_emails(df, gmail_user, gmail_app_password, start_row, end_row, email_column):
     df_subset = df.iloc[start_row-1:end_row]
 
-    # Create lists to store valid and invalid emails
     valid_emails = []
     invalid_emails = []
 
-    start_time = time()  # Start timing the processing
-
     for idx, row in df_subset.iterrows():
-        email_address = row[email_column]  # Use the specified email column
+        email_address = row[email_column]
         is_valid = validate_email(email_address, gmail_user, gmail_app_password)
         if is_valid:
             valid_emails.append(row)
         else:
             invalid_emails.append(row)
 
-    # Calculate the time taken
-    end_time = time()
-    processing_time = end_time - start_time
-
-    # Create DataFrame for results
     valid_df = pd.DataFrame(valid_emails)
     invalid_df = pd.DataFrame(invalid_emails)
 
-    # Display the results
-    st.subheader("Valid Emails")
-    st.write(valid_df)
-    
-    st.subheader("Invalid Emails")
-    st.write(invalid_df)
+    return valid_df, invalid_df
 
-    # Provide download options for Excel files
-    valid_output_filename = f"valid_emails_{start_row}_{end_row}.xlsx"
-    invalid_output_filename = f"invalid_emails_{start_row}_{end_row}.xlsx"
+# Streamlit app
+def main():
+    st.title("Email Validation App")
+    st.write("Validate email addresses by sending test emails and checking for bounce-backs.")
 
-    valid_df.to_excel(valid_output_filename, index=False)
-    invalid_df.to_excel(invalid_output_filename, index=False)
+    gmail_user = st.text_input("Enter Gmail Address")
+    gmail_app_password = st.text_input("Enter Gmail App Password", type="password")
 
-    st.write(f"Total processing time: {processing_time:.2f} seconds")
-
-    # Add download buttons
-    st.download_button(
-        label="Download Valid Emails",
-        data=open(valid_output_filename, "rb").read(),
-        file_name=valid_output_filename
-    )
-
-    st.download_button(
-        label="Download Invalid Emails",
-        data=open(invalid_output_filename, "rb").read(),
-        file_name=invalid_output_filename
-    )
-
-# Streamlit UI
-st.title("Email Validation Tool")
-st.write("This tool validates email addresses and checks for bounce-backs.")
-
-gmail_user = st.text_input("Gmail Address", value="senthilkumargwgk@gmail.com")
-gmail_app_password = st.text_input("Gmail App Password", type="password")
-input_excel = st.file_uploader("Upload Excel File", type=["xlsx"])
-
-if input_excel:
-    df = pd.read_excel(input_excel)
-    st.write("Data Preview", df.head())
-
+    uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
     start_row = st.number_input("Start Row", min_value=1, value=1)
-    end_row = st.number_input("End Row", min_value=start_row, value=start_row + 9)
+    end_row = st.number_input("End Row", min_value=1, value=10)
+    email_column = st.text_input("Email Column Name", value="Email")
 
-    if st.button("Start Validation"):
-        process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_row)
+    if uploaded_file:
+        df = pd.read_excel(uploaded_file)
+        st.write("Uploaded Data Preview:", df.head())
+
+        if st.button("Validate Emails"):
+            if not gmail_user or not gmail_app_password:
+                st.error("Please enter Gmail credentials.")
+                return
+
+            try:
+                st.write("Processing emails... This might take some time.")
+                valid_df, invalid_df = process_emails(df, gmail_user, gmail_app_password, start_row, end_row, email_column)
+
+                # Convert results to downloadable files
+                valid_file = BytesIO()
+                invalid_file = BytesIO()
+
+                with pd.ExcelWriter(valid_file, engine='openpyxl') as writer:
+                    valid_df.to_excel(writer, sheet_name='Valid Emails', index=False)
+
+                with pd.ExcelWriter(invalid_file, engine='openpyxl') as writer:
+                    invalid_df.to_excel(writer, sheet_name='Invalid Emails', index=False)
+
+                st.success("Processing complete!")
+
+                # Show download buttons
+                valid_filename = f"valid_emails_{start_row}_{end_row}.xlsx"
+                invalid_filename = f"invalid_emails_{start_row}_{end_row}.xlsx"
+                
+                # Download buttons for both files
+                st.download_button("Download Valid Emails", valid_file.getvalue(), valid_filename)
+                st.download_button("Download Invalid Emails", invalid_file.getvalue(), invalid_filename)
+
+            except Exception as e:
+                st.error(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    main()

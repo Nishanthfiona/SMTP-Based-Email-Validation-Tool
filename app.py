@@ -150,11 +150,13 @@ if input_excel:
     input_filename = input_excel.name.split('.')[0]  # Extract filename without extension
     st.write("Data Preview", df.head())
 
+    email_column = st.text_input("Email Column Name", value="Email")  # Add this input field for the user to specify column name
+
     start_row = st.number_input("Start Row", min_value=1, value=1)
     end_row = st.number_input("End Row", min_value=start_row, value=start_row + 9)
 
     if st.button("Start Validation"):
-        process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_row)
+        process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_row, email_column=email_column)
 
     # Display valid and invalid emails
     if not st.session_state['valid_emails'].empty:

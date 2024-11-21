@@ -139,11 +139,12 @@ def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_r
 
 # Streamlit UI
 st.title("Email Validation Tool")
-st.write("This tool validates email addresses and checks for bounce-backs.")
+st.write("This tool validates email addresses and checks for bounce-backs. You need to own a Gmail account with an app password. Your email ID and password will not be saved anywhere.")
 
-gmail_user = st.text_input("Gmail Address", value="senthilkumargwgk@gmail.com")
-gmail_app_password = st.text_input("Gmail App Password", type="password")
+gmail_user = st.text_input("Gmail Address", value="enter your email")
+gmail_app_password = st.text_input("Gmail App Password", value="Enter Your Password", type="password")
 input_excel = st.file_uploader("Upload Excel File", type=["xlsx"])
+
 
 if input_excel:
     df = pd.read_excel(input_excel)

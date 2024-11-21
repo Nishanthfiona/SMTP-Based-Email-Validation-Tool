@@ -5,7 +5,6 @@ import re
 import pandas as pd
 import streamlit as st
 from time import time, sleep
-from io import BytesIO  # Import BytesIO to handle in-memory file saving
 
 # Email regex validation
 def is_valid_syntax(email):
@@ -117,16 +116,15 @@ def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_r
     st.session_state.valid_emails = pd.DataFrame(valid_emails)
     st.session_state.invalid_emails = pd.DataFrame(invalid_emails)
 
-    # Display the result filenames as text
-    valid_output_filename = f"email_list_valid_emails_{start_row}_{end_row}.xlsx"
-    invalid_output_filename = f"email_list_invalid_emails_{start_row}_{end_row}.xlsx"
-
-    # Display tables with download icon using st.dataframe
+    # Display valid emails in an expandable section
     st.subheader("Valid Emails")
-    st.dataframe(st.session_state.valid_emails, use_container_width=True)  # Display the valid emails table
+    with st.expander("Click to view valid emails"):
+        st.dataframe(st.session_state.valid_emails, use_container_width=True)
 
+    # Display invalid emails in an expandable section
     st.subheader("Invalid Emails")
-    st.dataframe(st.session_state.invalid_emails, use_container_width=True)  # Display the invalid emails table
+    with st.expander("Click to view invalid emails"):
+        st.dataframe(st.session_state.invalid_emails, use_container_width=True)
 
 # Streamlit UI
 st.title("Email Validation Tool")

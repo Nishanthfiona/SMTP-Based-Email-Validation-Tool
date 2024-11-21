@@ -121,12 +121,12 @@ def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_r
     valid_output_filename = f"email_list_valid_emails_{start_row}_{end_row}.xlsx"
     invalid_output_filename = f"email_list_invalid_emails_{start_row}_{end_row}.xlsx"
 
+    # Display tables with download icon using st.dataframe
     st.subheader("Valid Emails")
-    st.write(st.session_state.valid_emails)  # Display the valid emails table
+    st.dataframe(st.session_state.valid_emails, use_container_width=True)  # Display the valid emails table
 
     st.subheader("Invalid Emails")
-    st.write(st.session_state.invalid_emails)  # Display the invalid emails table
-
+    st.dataframe(st.session_state.invalid_emails, use_container_width=True)  # Display the invalid emails table
 
 # Streamlit UI
 st.title("Email Validation Tool")

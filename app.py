@@ -120,11 +120,27 @@ def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_r
     st.subheader("Valid Emails")
     with st.expander("Click to view valid emails"):
         st.dataframe(st.session_state.valid_emails, use_container_width=True)
+    
+    # Provide a download button for valid emails
+    st.download_button(
+        label="Download Valid Emails",
+        data=st.session_state.valid_emails.to_csv(index=False).encode(),
+        file_name="valid_emails.csv",
+        mime="text/csv"
+    )
 
     # Display invalid emails in an expandable section
     st.subheader("Invalid Emails")
     with st.expander("Click to view invalid emails"):
         st.dataframe(st.session_state.invalid_emails, use_container_width=True)
+    
+    # Provide a download button for invalid emails
+    st.download_button(
+        label="Download Invalid Emails",
+        data=st.session_state.invalid_emails.to_csv(index=False).encode(),
+        file_name="invalid_emails.csv",
+        mime="text/csv"
+    )
 
 # Streamlit UI
 st.title("Email Validation Tool")

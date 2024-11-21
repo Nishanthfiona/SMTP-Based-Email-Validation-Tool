@@ -7,6 +7,27 @@ import streamlit as st
 from time import time, sleep
 from io import BytesIO
 from datetime import datetime
+import os
+
+# File to store user count
+USER_COUNT_FILE = "user_count.txt"
+
+# Function to get the current user count
+def get_user_count():
+    if os.path.exists(USER_COUNT_FILE):
+        with open(USER_COUNT_FILE, "r") as file:
+            count = int(file.read())
+    else:
+        count = 0
+    return count
+
+# Function to increment the user count
+def increment_user_count():
+    count = get_user_count() + 1
+    with open(USER_COUNT_FILE, "w") as file:
+        file.write(str(count))
+    return count
+
 
 # Email regex validation
 def is_valid_syntax(email):
@@ -146,6 +167,13 @@ st.sidebar.write("📍 Chennai, Tamil Nadu")
 
 # Separator line
 st.sidebar.markdown("---")  # This adds a horizontal line as a separator
+# Increment user count and display in sidebar
+if __name__ == "__main__":
+    # Increment user count
+    user_count = increment_user_count()
+
+    # Display user count in the sidebar
+    st.sidebar.metric(label="User Count", value=user_count)
 
 # Social links
 st.sidebar.write("**Social Links**")
@@ -182,6 +210,7 @@ st.sidebar.markdown(
     """,
     unsafe_allow_html=True,
 )
+
 
 
 gmail_user = st.text_input("Gmail Address", value="")

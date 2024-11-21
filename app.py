@@ -12,7 +12,7 @@ def is_valid_syntax(email):
     return re.match(email_regex, email) is not None
 
 # Check for bounce-back emails
-def check_bounce_back(gmail_user, gmail_app_password, test_email, wait_duration=120):
+def check_bounce_back(gmail_user, gmail_app_password, test_email, wait_duration=30):
     try:
         # Connect to the IMAP server
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
@@ -120,23 +120,23 @@ def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_r
     processing_time = end_time - start_time
     st.write(f"Total processing time: {processing_time:.2f} seconds")
 
-    # Create DataFrame for results
-    valid_df = pd.DataFrame(valid_emails)
-    invalid_df = pd.DataFrame(invalid_emails)
+    # Store results in session state for persistence
+    st.session_state.valid_emails = pd.DataFrame(valid_emails)
+    st.session_state.invalid_emails = pd.DataFrame(invalid_emails)
 
     # Display the results
     st.subheader("Valid Emails")
-    st.write(valid_df)
+    st.write(st.session_state.valid_emails)
     
     st.subheader("Invalid Emails")
-    st.write(invalid_df)
+    st.write(st.session_state.invalid_emails)
 
     # Provide download options for Excel files
     valid_output_filename = f"valid_emails_{start_row}_{end_row}.xlsx"
     invalid_output_filename = f"invalid_emails_{start_row}_{end_row}.xlsx"
 
-    valid_df.to_excel(valid_output_filename, index=False)
-    invalid_df.to_excel(invalid_output_filename, index=False)
+    st.session_state.valid_emails.to_excel(valid_output_filename, index=False)
+    st.session_state.invalid_emails.to_excel(invalid_output_filename, index=False)
 
     st.download_button(
         label="Download Valid Emails",

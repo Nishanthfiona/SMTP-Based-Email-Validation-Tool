@@ -16,13 +16,16 @@ USER_COUNT_FILE = "user_count.txt"
 def get_user_count():
     if os.path.exists(USER_COUNT_FILE):
         with open(USER_COUNT_FILE, "r") as file:
-            count = int(file.read())
+            content = file.read().strip()  # Strip any extra spaces or newlines
+            # Default to 0 if the file is empty or contains an invalid value
+            count = int(content) if content else 0
     else:
         # Initialize user count to 0 if the file does not exist
         count = 0
         with open(USER_COUNT_FILE, "w") as file:
             file.write(str(count))
     return count
+
 
 # Function to increment the user count
 def increment_user_count():

@@ -41,7 +41,7 @@ def check_bounce_back(gmail_user, gmail_app_password, test_email, wait_duration=
                         ):
                             if test_email in body:
                                 return False  # Bounce detected
-            sleep(3)  # Wait between checks
+            sleep(5)  # Wait between checks
 
         return True  # No bounce detected after waiting
     except Exception as e:

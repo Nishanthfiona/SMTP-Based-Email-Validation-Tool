@@ -13,7 +13,7 @@ def is_valid_syntax(email):
     return re.match(email_regex, email) is not None
 
 # Check for bounce-back emails
-def check_bounce_back(gmail_user, gmail_app_password, test_email, wait_duration=120):
+def check_bounce_back(gmail_user, gmail_app_password, test_email, wait_duration=20):
     try:
         # Connect to the IMAP server
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
@@ -121,38 +121,11 @@ def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_r
     valid_output_filename = f"email_list_valid_emails_{start_row}_{end_row}.xlsx"
     invalid_output_filename = f"email_list_invalid_emails_{start_row}_{end_row}.xlsx"
 
-    st.subheader("Output Files")
-    st.write(f"{valid_output_filename}")
-    st.write(st.session_state.valid_emails)
+    st.subheader("Valid Emails")
+    st.write(st.session_state.valid_emails)  # Display the valid emails table
 
-    st.write(f"{invalid_output_filename}")
-    st.write(st.session_state.invalid_emails)
-
-    # Create in-memory Excel file for download using BytesIO
-    valid_output = BytesIO()
-    invalid_output = BytesIO()
-
-    # Write the dataframes to the BytesIO buffer
-    st.session_state.valid_emails.to_excel(valid_output, index=False)
-    st.session_state.invalid_emails.to_excel(invalid_output, index=False)
-
-    # Seek to the start of the BytesIO buffer
-    valid_output.seek(0)
-    invalid_output.seek(0)
-
-    # Provide download buttons for the results as files using st.download_button
-    st.download_button(
-        label="Download Valid Emails",
-        data=valid_output,
-        file_name=valid_output_filename,
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-    st.download_button(
-        label="Download Invalid Emails",
-        data=invalid_output,
-        file_name=invalid_output_filename,
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    st.subheader("Invalid Emails")
+    st.write(st.session_state.invalid_emails)  # Display the invalid emails table
 
 
 # Streamlit UI

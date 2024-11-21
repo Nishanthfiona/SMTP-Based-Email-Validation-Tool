@@ -18,7 +18,10 @@ def get_user_count():
         with open(USER_COUNT_FILE, "r") as file:
             count = int(file.read())
     else:
+        # Initialize user count to 0 if the file does not exist
         count = 0
+        with open(USER_COUNT_FILE, "w") as file:
+            file.write(str(count))
     return count
 
 # Function to increment the user count
@@ -27,6 +30,7 @@ def increment_user_count():
     with open(USER_COUNT_FILE, "w") as file:
         file.write(str(count))
     return count
+
 
 
 # Email regex validation
@@ -167,13 +171,10 @@ st.sidebar.write("📍 Chennai, Tamil Nadu")
 
 # Separator line
 st.sidebar.markdown("---")  # This adds a horizontal line as a separator
-# Increment user count and display in sidebar
-if __name__ == "__main__":
-    # Increment user count
-    user_count = increment_user_count()
 
-    # Display user count in the sidebar
-    st.sidebar.metric(label="User Count", value=user_count)
+# Increment user count and display in sidebar directly (no need for __name__ check)
+user_count = increment_user_count()  # Increment user count
+st.sidebar.metric(label="User Count", value=user_count)  # Display user count in sidebar
 
 # Social links
 st.sidebar.write("**Social Links**")

@@ -130,12 +130,13 @@ def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_r
     # Calculate the time taken
     end_time = time()
     processing_time = end_time - start_time
+    
+# Initialize session state if not already initialized
+if 'valid_emails' not in st.session_state:
+    st.session_state['valid_emails'] = pd.DataFrame()
 
-    if "valid_emails" not in st.session_state:
-        st.session_state['valid_emails'] = pd.DataFrame()
-
-    if "invalid_emails" not in st.session_state:
-        st.session_state['invalid_emails'] = pd.DataFrame()
+if 'invalid_emails' not in st.session_state:
+    st.session_state['invalid_emails'] = pd.DataFrame()
 
 # Streamlit UI
 st.title("Email Validation Tool")

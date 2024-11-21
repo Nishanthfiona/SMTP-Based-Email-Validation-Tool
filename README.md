@@ -75,7 +75,7 @@ This is a Python-based application that validates email addresses using SMTP and
 
 ## Troubleshooting
 
-- **"SMTPAuthenticationError"**:
+- **SMTPAuthenticationError**:
   - Ensure that you are using the correct Gmail credentials and app password.
   - Verify that 2-step verification is enabled in your Google account.
 
@@ -107,4 +107,5 @@ This is a Python-based application that validates email addresses using SMTP and
 
 - This tool is designed for educational purposes and must not be used to spam or violate the privacy of others.
 - Ensure compliance with all applicable email and data privacy regulations.
-``` 
+
+---

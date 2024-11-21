@@ -1,4 +1,4 @@
-mport smtplib
+import smtplib
 import imaplib
 import email
 import re

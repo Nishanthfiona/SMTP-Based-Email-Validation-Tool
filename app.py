@@ -132,9 +132,16 @@ def main():
                 with pd.ExcelWriter(invalid_file, engine='openpyxl') as writer:
                     invalid_df.to_excel(writer, sheet_name='Invalid Emails', index=False)
 
+                # Generate filenames including start and end rows
+                valid_filename = f"valid_emails_{start_row}_{end_row}.xlsx"
+                invalid_filename = f"invalid_emails_{start_row}_{end_row}.xlsx"
+
                 st.success("Processing complete!")
-                st.download_button("Download Valid Emails", valid_file.getvalue(), "valid_emails.xlsx")
-                st.download_button("Download Invalid Emails", invalid_file.getvalue(), "invalid_emails.xlsx")
+
+                # Keep both download buttons visible
+                st.download_button("Download Valid Emails", valid_file.getvalue(), valid_filename)
+                st.download_button("Download Invalid Emails", invalid_file.getvalue(), invalid_filename)
+
             except Exception as e:
                 st.error(f"An error occurred: {e}")
 

@@ -130,22 +130,20 @@ def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_r
     # Calculate the time taken
     end_time = time()
     processing_time = end_time - start_time
-    
-# Initialize session state if not already initialized
-if 'valid_emails' not in st.session_state:
-    st.session_state['valid_emails'] = pd.DataFrame()
 
-if 'invalid_emails' not in st.session_state:
-    st.session_state['invalid_emails'] = pd.DataFrame()
+    if "valid_emails" not in st.session_state:
+        st.session_state['valid_emails'] = pd.DataFrame()
+
+    if "invalid_emails" not in st.session_state:
+        st.session_state['invalid_emails'] = pd.DataFrame()
 
 # Streamlit UI
 st.title("Email Validation Tool")
-st.write("This tool validates email addresses and checks for bounce-backs. You need to own a Gmail account with an app password. Your email ID and password will not be saved anywhere.")
+st.write("This tool validates email addresses and checks for bounce-backs.")
 
-gmail_user = st.text_input("Gmail Address", value="enter your email")
-gmail_app_password = st.text_input("Gmail App Password", value="Enter Your Password", type="password")
+gmail_user = st.text_input("Gmail Address", value="")
+gmail_app_password = st.text_input("Gmail App Password", type="password")
 input_excel = st.file_uploader("Upload Excel File", type=["xlsx"])
-
 
 if input_excel:
     df = pd.read_excel(input_excel)

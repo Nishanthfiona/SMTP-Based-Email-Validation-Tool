@@ -12,7 +12,7 @@ def is_valid_syntax(email):
     return re.match(email_regex, email) is not None
 
 # Check for bounce-back emails
-def check_bounce_back(gmail_user, gmail_app_password, test_email, wait_duration=120):
+def check_bounce_back(gmail_user, gmail_app_password, test_email, wait_duration=20):
     try:
         # Connect to the IMAP server
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
@@ -116,31 +116,34 @@ def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_r
     st.session_state.valid_emails = pd.DataFrame(valid_emails)
     st.session_state.invalid_emails = pd.DataFrame(invalid_emails)
 
-    # Display the results
-    st.subheader("Valid Emails")
+    # Display the result filenames as text
+    valid_output_filename = f"email_list_valid_emails_{start_row}_{end_row}.xlsx"
+    invalid_output_filename = f"email_list_invalid_emails_{start_row}_{end_row}.xlsx"
+
+    st.subheader("Output Files")
+    st.write(f"{valid_output_filename}")
     st.write(st.session_state.valid_emails)
-    
-    st.subheader("Invalid Emails")
+
+    st.write(f"{invalid_output_filename}")
     st.write(st.session_state.invalid_emails)
 
-    # Provide download options for Excel files
-    valid_output_filename = f"valid_emails_{start_row}_{end_row}.xlsx"
-    invalid_output_filename = f"invalid_emails_{start_row}_{end_row}.xlsx"
-
-    st.session_state.valid_emails.to_excel(valid_output_filename, index=False)
-    st.session_state.invalid_emails.to_excel(invalid_output_filename, index=False)
+    # Provide download buttons for the results as files using st.download_button
+    valid_bytes = st.session_state.valid_emails.to_excel(index=False)
+    invalid_bytes = st.session_state.invalid_emails.to_excel(index=False)
 
     st.download_button(
         label="Download Valid Emails",
-        data=open(valid_output_filename, "rb").read(),
-        file_name=valid_output_filename
+        data=valid_bytes,
+        file_name=valid_output_filename,
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-
     st.download_button(
         label="Download Invalid Emails",
-        data=open(invalid_output_filename, "rb").read(),
-        file_name=invalid_output_filename
+        data=invalid_bytes,
+        file_name=invalid_output_filename,
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
 
 # Streamlit UI
 st.title("Email Validation Tool")

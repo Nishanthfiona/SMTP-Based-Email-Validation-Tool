@@ -131,15 +131,58 @@ def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_r
     end_time = time()
     processing_time = end_time - start_time
 
-    if "valid_emails" not in st.session_state:
-        st.session_state['valid_emails'] = pd.DataFrame()
+    # Ensure session state variables are initialized
+if 'valid_emails' not in st.session_state:
+    st.session_state['valid_emails'] = pd.DataFrame()
 
-    if "invalid_emails" not in st.session_state:
-        st.session_state['invalid_emails'] = pd.DataFrame()
+if 'invalid_emails' not in st.session_state:
+    st.session_state['invalid_emails'] = pd.DataFrame()
 
-# Streamlit UI
-st.title("Email Validation Tool")
-st.write("This tool validates email addresses and checks for bounce-backs.")
+# Sidebar content
+st.sidebar.title("About Me")
+st.sidebar.write("**Nishanth Fiona**")
+st.sidebar.write("📊 Data Analyst with 2+ years of experience, learning Data Science.")
+st.sidebar.write("📍 Chennai, Tamil Nadu")
+
+# Separator line
+st.sidebar.markdown("---")  # This adds a horizontal line as a separator
+
+# Social links
+st.sidebar.write("**Social Links**")
+
+# GitHub-hosted logos
+linkedin_logo_url = "https://raw.githubusercontent.com/Nishanthfiona/SMTP-Based-Email-Validation-Tool/refs/heads/main/linkedin.png"
+github_logo_url = "https://raw.githubusercontent.com/Nishanthfiona/SMTP-Based-Email-Validation-Tool/refs/heads/main/github-logo.png"
+email_logo_url = "https://raw.githubusercontent.com/Nishanthfiona/SMTP-Based-Email-Validation-Tool/refs/heads/main/communication.png"
+website_logo_url = "https://raw.githubusercontent.com/Nishanthfiona/SMTP-Based-Email-Validation-Tool/refs/heads/main/internet.png"
+medium_logo_url = "https://raw.githubusercontent.com/Nishanthfiona/SMTP-Based-Email-Validation-Tool/refs/heads/main/medium.png"
+# Display each social link vertically
+st.sidebar.markdown(
+    f"""
+    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <img src="{linkedin_logo_url}" width="20" style="margin-right: 10px;">
+        <a href="https://linkedin.com/in/nishanthfiona12" target="_blank">LinkedIn</a>
+    </div>
+    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <img src="{github_logo_url}" width="20" style="margin-right: 10px;">
+        <a href="https://github.com/Nishanthfiona" target="_blank">GitHub</a>
+    </div>
+    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <img src="{email_logo_url}" width="20" style="margin-right: 10px;">
+        <a href="mailto:fiona12.nf@gmail.com">Email</a>
+    </div>
+    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <img src="{website_logo_url}" width="20" style="margin-right: 10px;">
+        <a href="https://nishanthfiona.vercel.app/" target="_blank">Website</a>
+    </div>
+    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <img src="{medium_logo_url}" width="20" style="margin-right: 10px;">
+        <a href="https://medium.com/@nishanthfiona" target="_blank">Blog</a>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 gmail_user = st.text_input("Gmail Address", value="")
 gmail_app_password = st.text_input("Gmail App Password", type="password")

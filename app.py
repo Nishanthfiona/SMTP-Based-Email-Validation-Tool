@@ -131,13 +131,11 @@ def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_r
     end_time = time()
     processing_time = end_time - start_time
 
-    # Display valid and invalid emails in the UI
-    st.subheader("Valid Emails")
-    st.dataframe(pd.DataFrame(valid_emails), use_container_width=True)
+    if "valid_emails" not in st.session_state:
+        st.session_state['valid_emails'] = pd.DataFrame()
 
-    st.subheader("Invalid Emails")
-    st.dataframe(pd.DataFrame(invalid_emails), use_container_width=True)
-
+    if "invalid_emails" not in st.session_state:
+        st.session_state['invalid_emails'] = pd.DataFrame()
 
 # Streamlit UI
 st.title("Email Validation Tool")
@@ -158,15 +156,13 @@ if input_excel:
     if st.button("Start Validation"):
         process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_row)
 
-        # Generate dynamic filenames for the download buttons
+    # Display valid and invalid emails
+    if not st.session_state['valid_emails'].empty:
+        st.subheader("Valid Emails")
+        st.dataframe(st.session_state['valid_emails'], use_container_width=True)
+
         valid_filename = generate_filename(input_filename, start_row, end_row, 'valid')
-        invalid_filename = generate_filename(input_filename, start_row, end_row, 'invalid')
-
-        # Convert to Excel for download
         valid_emails_excel = to_excel(st.session_state['valid_emails'])
-        invalid_emails_excel = to_excel(st.session_state['invalid_emails'])
-
-        # Download buttons
         st.download_button(
             label="Download Valid Emails",
             data=valid_emails_excel,
@@ -174,6 +170,12 @@ if input_excel:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
+    if not st.session_state['invalid_emails'].empty:
+        st.subheader("Invalid Emails")
+        st.dataframe(st.session_state['invalid_emails'], use_container_width=True)
+
+        invalid_filename = generate_filename(input_filename, start_row, end_row, 'invalid')
+        invalid_emails_excel = to_excel(st.session_state['invalid_emails'])
         st.download_button(
             label="Download Invalid Emails",
             data=invalid_emails_excel,

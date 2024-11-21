@@ -10,7 +10,7 @@ from datetime import datetime
 
 # Email regex validation
 def is_valid_syntax(email):
-    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zAHZ0-9-]+\.[a-zA-Z0-9-.]+$'
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
     return re.match(email_regex, email) is not None
 
 # Check for bounce-back emails
@@ -98,7 +98,7 @@ def generate_filename(input_filename, start_row, end_row, file_type):
     return f"{input_filename}_{file_type}_emails_{start_row}_{end_row}.xlsx"
 
 # Main function to handle Excel input/output and timing
-def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_row, email_column='Email'):
+def process_emails(input_excel, gmail_user, gmail_app_password, email_column, start_row, end_row):
     # Read input Excel file
     df = pd.read_excel(input_excel)
 
@@ -131,41 +131,33 @@ def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_r
     end_time = time()
     processing_time = end_time - start_time
 
-    # Initialize session state for valid and invalid emails
-if 'valid_emails' not in st.session_state:
-    st.session_state['valid_emails'] = pd.DataFrame()  # Empty DataFrame
-if 'invalid_emails' not in st.session_state:
-    st.session_state['invalid_emails'] = pd.DataFrame()  # Empty DataFrame
+    if "valid_emails" not in st.session_state:
+        st.session_state['valid_emails'] = pd.DataFrame()
+
+    if "invalid_emails" not in st.session_state:
+        st.session_state['invalid_emails'] = pd.DataFrame()
 
 # Streamlit UI
 st.title("Email Validation Tool")
 st.write("This tool validates email addresses and checks for bounce-backs.")
 
-# User input for Gmail credentials
-gmail_user = st.text_input("Gmail Address", value="senthilkumargwgk@gmail.com")
+gmail_user = st.text_input("Gmail Address", value="")
 gmail_app_password = st.text_input("Gmail App Password", type="password")
-
-# File uploader for Excel file
 input_excel = st.file_uploader("Upload Excel File", type=["xlsx"])
 
 if input_excel:
-    # Read the uploaded Excel file
     df = pd.read_excel(input_excel)
     input_filename = input_excel.name.split('.')[0]  # Extract filename without extension
-    
-    # Display the data preview
     st.write("Data Preview", df.head())
 
-    # Allow the user to select the column containing email addresses
-    email_column = st.selectbox("Select the column with email addresses", options=df.columns)
+    # Dropdown to select the email column
+    email_column = st.selectbox("Select Email Column", df.columns)
 
-    # Input for start and end rows
     start_row = st.number_input("Start Row", min_value=1, value=1)
-    end_row = st.number_input("End Row", min_value=start_row, value=min(start_row + 9, len(df)))
+    end_row = st.number_input("End Row", min_value=start_row, value=start_row + 9)
 
     if st.button("Start Validation"):
-        # Process the emails for the specified range
-        process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_row, email_column=email_column)
+        process_emails(input_excel, gmail_user, gmail_app_password, email_column, start_row, end_row)
 
     # Display valid and invalid emails
     if not st.session_state['valid_emails'].empty:

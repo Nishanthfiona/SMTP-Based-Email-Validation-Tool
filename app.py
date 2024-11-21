@@ -150,7 +150,8 @@ if input_excel:
     input_filename = input_excel.name.split('.')[0]  # Extract filename without extension
     st.write("Data Preview", df.head())
 
-    email_column = st.text_input("Email Column Name", value="Email")  # Add this input field for the user to specify column name
+    # Dynamically populate the email column selection dropdown with column names
+    email_column = st.selectbox("Select Email Column", options=df.columns)
 
     start_row = st.number_input("Start Row", min_value=1, value=1)
     end_row = st.number_input("End Row", min_value=start_row, value=start_row + 9)

@@ -113,16 +113,16 @@ def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_r
     processing_time = end_time - start_time
 
     # Store results in session state for persistence
-    st.session_state.valid_emails = pd.DataFrame(valid_emails)
-    st.session_state.invalid_emails = pd.DataFrame(invalid_emails)
+    st.session_state['valid_emails'] = pd.DataFrame(valid_emails)
+    st.session_state['invalid_emails'] = pd.DataFrame(invalid_emails)
 
-    # Display valid emails in an expandable section
+    # Display valid emails in an expandable section with download button
     st.subheader("Valid Emails")
-    st.dataframe(st.session_state.valid_emails, use_container_width=True)
+    st.dataframe(st.session_state['valid_emails'], use_container_width=True)
 
-    # Display invalid emails in an expandable section
+    # Display invalid emails in an expandable section with download button
     st.subheader("Invalid Emails")
-    st.dataframe(st.session_state.invalid_emails, use_container_width=True)
+    st.dataframe(st.session_state['invalid_emails'], use_container_width=True)
 
 # Streamlit UI
 st.title("Email Validation Tool")

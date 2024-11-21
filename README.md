@@ -1,78 +1,110 @@
-# Email Validation Tool using SMTP
+# SMTP-Based Email Validation Tool
 
-## Overview
-This script validates email addresses by performing the following steps:
-1. **Syntax Validation**: Ensures the email address is formatted correctly using a regular expression.
-2. **MX Record Validation**: Checks if the email's domain has a valid mail server (MX record).
-3. **SMTP Validation**: Uses Gmail's SMTP server to check whether the email address exists and is deliverable.
-
-The tool processes a given Excel file containing email addresses and generates **two output files**:
-- **Valid Emails File**: Contains rows with deliverable email addresses and validation details.
-- **Invalid Emails File**: Contains rows with undeliverable email addresses and validation details.
-
----
-
-## Features
-- **Input File**: An Excel file with a column containing email addresses.
-- **Output Files**:
-  1. A file listing valid emails with the validation status and time taken for each.
-  2. A file listing invalid emails with the same additional details.
-- **Customizable Range**: Allows validation of specific rows from the Excel file.
-- **Detailed Logs**: Prints status and time taken for each email during validation.
-
----
+This is a Python-based application that validates email addresses using SMTP and bounce-back email detection. It processes emails from an Excel file and generates separate files for valid and invalid email addresses. 
 
 ## Prerequisites
-1. **Python Libraries**:
-   - `pandas`: For Excel file handling.
-   - `openpyxl`: For writing to Excel files.
-   - `dns.resolver`: For checking domain MX records.
-   - `smtplib`: For SMTP-based email validation.
-2. **Gmail Account**:
-   - A Gmail account with an [App Password](https://support.google.com/accounts/answer/185833) enabled.
+
+1. **Gmail Account**: 
+   - You must have a Gmail account to use this tool.
+   - Ensure that your Gmail account has 2-step verification enabled.
+
+2. **Gmail App Password**:
+   - App passwords are 16-character passcodes that allow less secure apps or devices to access your Google account. 
+   - Follow these steps to generate an app password:
+     1. Go to [Google Account Security Settings](https://myaccount.google.com/security).
+     2. Under **"Signing in to Google"**, select **"App Passwords"**.
+     3. Log in with your account credentials.
+     4. Under **"Select the app and device you want to generate the app password for"**, choose **Mail** as the app and your preferred device.
+     5. Copy the 16-character password provided.
+
+3. **Python Libraries**: Install the required libraries:
+   ```bash
+   pip install pandas openpyxl
+   ```
+
+4. **Input Excel File**: Prepare an Excel file containing the email addresses in one column. The column name should be `Email` (or update the script for your column name).
 
 ---
 
 ## How to Use
-1. Update the following variables in the script:
-   - `gmail_user`: Your Gmail email address.
-   - `gmail_app_password`: Your Gmail App Password.
-   - `input_file`: The path to the input Excel file containing emails.
-   - `email_column`: Name of the column in the Excel file that contains email addresses.
 
-2. Adjust `start_row` and `end_row` to define the range of rows to process (if needed).
+1. **Clone or Download the Repository**:
+   ```bash
+   git clone https://github.com/YourUsername/SMTP-Based-Email-Validation-Tool.git
+   cd SMTP-Based-Email-Validation-Tool
+   ```
 
-3. Run the script, and the output files will be generated in the same directory as the input file:
-   - `<input_file_name> valid emails <start_row>-<end_row>.xlsx`
-   - `<input_file_name> invalid emails <start_row>-<end_row>.xlsx`
+2. **Prepare the Input File**:
+   - Save your list of email addresses in an Excel file, e.g., `emails.xlsx`. Ensure that the email addresses are in a single column, with the header name `Email` (case-sensitive).
 
----
+3. **Run the Script**:
+   - Open the script and update the following variables:
+     - `gmail_user`: Your Gmail ID.
+     - `gmail_app_password`: The app password generated in the prerequisites step.
+     - `input_excel`: Path to your Excel file containing the email list.
+     - `start_row` and `end_row`: Specify the range of rows to process.
+     - `email_column`: Set the column name containing email addresses (default is `Email`).
 
-## Example
-### Input File
-**email_list.xlsx**
-| ID  | Email              |
-|------|--------------------|
-| 1    | valid@example.com |
-| 2    | invalid@fake.com  |
+   - Run the script:
+     ```bash
+     python validate_emails.py
+     ```
 
-### Running the Script
-```python
-python validate_emails.py
-```
-
-### Output Files
-**email_list valid emails 1-5.xlsx**
-| ID  | Email              | Validation Status | Validation Time (s) |
-|------|--------------------|-------------------|----------------------|
-| 1    | valid@example.com | Valid             | 2.56                |
+4. **Output Files**:
+   - Two output Excel files will be generated:
+     - `valid_emails_<start_row>_<end_row>.xlsx`: Contains valid email addresses.
+     - `invalid_emails_<start_row>_<end_row>.xlsx`: Contains invalid email addresses.
 
 ---
 
-**email_list invalid emails 1-5.xlsx**
+## How It Works
 
-| ID  | Email              | Validation Status | Validation Time (s) |
-|------|--------------------|-------------------|----------------------|
-| 2    | invalid@fake.com  | Invalid           | 3.21                |
+1. **Syntax Validation**:
+   - The script first checks if the email address matches a valid email format using a regex.
+
+2. **SMTP Test**:
+   - It sends a test email to the address using Gmail's SMTP server.
+
+3. **Bounce-Back Detection**:
+   - The script monitors Gmail's inbox for bounce-back emails. If a bounce-back is detected for a test email, it is marked as invalid.
+
+4. **Processing Emails**:
+   - Emails are processed in batches based on the `start_row` and `end_row` parameters.
 
 ---
+
+## Troubleshooting
+
+- **"SMTPAuthenticationError"**:
+  - Ensure that you are using the correct Gmail credentials and app password.
+  - Verify that 2-step verification is enabled in your Google account.
+
+- **"No bounce detected"**:
+  - Check the test email address for typos or issues. 
+  - Increase the `wait_duration` in the `check_bounce_back()` function to allow more time for bounce-back detection.
+
+- **Library Errors**:
+  - Ensure all required libraries are installed:
+    ```bash
+    pip install pandas openpyxl
+    ```
+
+---
+
+## Customization
+
+- Modify the email content by changing the subject and body in the `send_test_email` function:
+  ```python
+  subject = "Test Email"
+  body = "This is a test email to validate your address."
+  ```
+
+- Update the email column name in the `process_emails()` function if your input file uses a different header.
+
+---
+
+## Disclaimer
+
+- This tool is designed for educational purposes and must not be used to spam or violate the privacy of others.
+- Ensure compliance with all applicable email and data privacy regulations.
+``` 

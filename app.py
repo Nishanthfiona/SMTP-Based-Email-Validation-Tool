@@ -12,7 +12,7 @@ def is_valid_syntax(email):
     return re.match(email_regex, email) is not None
 
 # Check for bounce-back emails
-def check_bounce_back(gmail_user, gmail_app_password, test_email, wait_duration=30):
+def check_bounce_back(gmail_user, gmail_app_password, test_email, wait_duration=120):
     try:
         # Connect to the IMAP server
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
@@ -34,13 +34,11 @@ def check_bounce_back(gmail_user, gmail_app_password, test_email, wait_duration=
                         # Bounce-check based on subject and content
                         if "bounce" in subject.lower() or "undelivered" in subject.lower():
                             if test_email in body:
-                                print(f"Bounce-back detected for {test_email}")
                                 return False  # Bounce detected
             sleep(5)  # Wait between checks
 
         return True  # No bounce detected after waiting
     except Exception as e:
-        print(f"Error checking bounce-back: {e}")
         return False
 
 # Send a test email and validate
@@ -62,7 +60,6 @@ def send_test_email(test_email, gmail_user, gmail_app_password):
         server.quit()
         return True
     except Exception as e:
-        print(f"Error sending test email to {test_email}: {e}")
         return False
 
 # Validate email with SMTP and bounce-back handling
@@ -70,19 +67,15 @@ def validate_email(test_email, gmail_user, gmail_app_password):
     if not is_valid_syntax(test_email):
         return False, 0  # Invalid syntax, return 0 for validation time
 
-    st.write(f"Sending test email to {test_email}...")
     start_time = time()
     if send_test_email(test_email, gmail_user, gmail_app_password):
-        st.write(f"Initial success for {test_email}. Waiting for final validation.")
         sleep(10)  # Wait for bounce-back to arrive
         if not check_bounce_back(gmail_user, gmail_app_password, test_email):
             end_time = time()
             validation_time = end_time - start_time
-            st.write(f"{test_email}: Invalid (Bounce detected) - Validation Time: {validation_time:.2f}s")
             return False, validation_time
         end_time = time()
         validation_time = end_time - start_time
-        st.write(f"{test_email}: Valid and received - Validation Time: {validation_time:.2f}s")
         return True, validation_time
     else:
         end_time = time()
@@ -118,7 +111,6 @@ def process_emails(input_excel, gmail_user, gmail_app_password, start_row, end_r
     # Calculate the time taken
     end_time = time()
     processing_time = end_time - start_time
-    st.write(f"Total processing time: {processing_time:.2f} seconds")
 
     # Store results in session state for persistence
     st.session_state.valid_emails = pd.DataFrame(valid_emails)

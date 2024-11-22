@@ -82,8 +82,8 @@ def send_test_email(test_email, gmail_user, gmail_app_password):
         # Test email content
         from_email = gmail_user
         to_email = test_email
-        subject = "Test Email"
-        body = "This is a test email to validate your address."
+        subject = "Test Mail (Kindly Ignore this Mail)"
+        body = "This is a test email to validate your email address."
 
         message = f"Subject: {subject}\n\n{body}"
         server.sendmail(from_email, to_email, message)

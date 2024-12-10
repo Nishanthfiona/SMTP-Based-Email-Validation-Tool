@@ -9,31 +9,6 @@ from io import BytesIO
 from datetime import datetime
 import os
 
-# File to store user count
-USER_COUNT_FILE = "user_count.txt"
-
-# Function to get the current user count
-def get_user_count():
-    if os.path.exists(USER_COUNT_FILE):
-        with open(USER_COUNT_FILE, "r") as file:
-            content = file.read().strip()  # Strip any extra spaces or newlines
-            # Default to 0 if the file is empty or contains an invalid value
-            count = int(content) if content else 0
-    else:
-        # Initialize user count to 0 if the file does not exist
-        count = 0
-        with open(USER_COUNT_FILE, "w") as file:
-            file.write(str(count))
-    return count
-
-
-# Function to increment the user count
-def increment_user_count():
-    count = get_user_count() + 1
-    with open(USER_COUNT_FILE, "w") as file:
-        file.write(str(count))
-    return count
-
 
 
 # Email regex validation
@@ -174,11 +149,6 @@ st.sidebar.write("📍 Chennai, Tamil Nadu")
 
 # Separator line
 st.sidebar.markdown("---")  # This adds a horizontal line as a separator
-
-# Increment user count and display in sidebar directly (no need for __name__ check)
-user_count = increment_user_count()  # Increment user count
-st.sidebar.metric(label="User Count", value=user_count)  # Display user count in sidebar
-
 # Social links
 st.sidebar.write("**Social Links**")
 
